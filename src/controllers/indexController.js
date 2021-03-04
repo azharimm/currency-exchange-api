@@ -12,9 +12,13 @@ exports.index = (req, res) => {
 };
 
 exports.calculator = async (req, res) => {
-    const htmlResult = await request.get(`${process.env.BASE_URL}`);
-    const $ = await cheerio.load(htmlResult);
-    const title = $(".OutputHeader").text();
-    return json(res, title);
+    try {
+        const htmlResult = await request.get(`${process.env.BASE_URL}`);
+        const $ = await cheerio.load(htmlResult);
+        const title = $(".OutputHeader").text();
+        return json(res, title);
+    } catch (error) {
+        return errorJson(res, "Error:"+error);
+    }
 }
 
