@@ -17,6 +17,7 @@ app.use(express.json());
 
 app.get("/", indexController.index);
 app.get("/calculator", indexController.calculator);
+app.get("/list-currency", indexController.listCurrencies);
 app.use(middlewares.notFound);
 app.use(middlewares.errorHandler);
 

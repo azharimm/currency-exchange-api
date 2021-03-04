@@ -13,12 +13,42 @@ exports.index = (req, res) => {
 
 exports.calculator = async (req, res) => {
     try {
-        const htmlResult = await request.get(`${process.env.BASE_URL}`);
+        let baseUrl = `${process.env.BASE_URL}`;
+        const { from, to, amount } = req.query;
+        if (from != null && to != null && amount != null) {
+            baseUrl = `${process.env.BASE_URL}?from=${from}&to=${to}&amount=${amount}`;
+        }
+        const htmlResult = await request.get(baseUrl);
         const $ = await cheerio.load(htmlResult);
         const title = $(".OutputHeader").text();
-        return json(res, title);
+        const fromResult = $(".ccOutputTxt").text().replace("=", "");
+        const trail = $(".ccOutputTrail").text();
+        const toResult = $(".ccOutputRslt").text().replace(trail, "");
+        const updatedAt = $(".calOutputTS").text();
+        return json(res, { title, fromResult, toResult, updatedAt });
     } catch (error) {
-        return errorJson(res, "Error:"+error);
+        return errorJson(res, "Error:" + error);
     }
-}
+};
 
+exports.listCurrencies = async (req, res) => {
+    try {
+        let baseUrl = `${process.env.BASE_URL}`;
+        const htmlResult = await request.get(baseUrl);
+        const $ = await cheerio.load(htmlResult);
+        const results = [];
+        $(".currencyList")
+            .find("li")
+            .each((index, el) => {
+                const currName = $(el).text();
+                const currCode = $(el)
+                    .children("a")
+                    .attr("href")
+                    .replace(`${baseUrl}/?from=`, "");
+                results.push({ currCode, currName });
+            });
+        return json(res, { results });
+    } catch (error) {
+        return errorJson(res, "Error:" + error);
+    }
+};
